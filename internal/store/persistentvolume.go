@@ -102,15 +102,23 @@ var (
 			Type: metric.Gauge,
 			Help: "Information about persistentvolume.",
 			GenerateFunc: wrapPersistentVolumeFunc(func(p *v1.PersistentVolume) *metric.Family {
+                                var storagePath string
+				if p.Spec.NFS != nil && p.Spec.NFS.Path != "" {
+					storagePath = p.Spec.NFS.Path
+				} else if p.Spec.Glusterfs != nil && p.Spec.Glusterfs.Path != "" {
+					storagePath = p.Spec.Glusterfs.Path
+				}
+
 				return &metric.Family{
 					Metrics: []*metric.Metric{
 						{
-							LabelKeys:   []string{"storageclass"},
-							LabelValues: []string{p.Spec.StorageClassName},
+							LabelKeys:   []string{"storageclass", "storagepath"},
+							LabelValues: []string{p.Spec.StorageClassName, storagePath},
 							Value:       1,
 						},
 					},
 				}
+				
 			}),
 		},
 		{
